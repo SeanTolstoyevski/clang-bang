@@ -1,0 +1,9 @@
+build/
+*.dll
+*.exe
+*.obj
+*.pdb
+.cache/
+*.log
+vcpkg_installed/
+*.bak

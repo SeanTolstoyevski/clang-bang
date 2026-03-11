@@ -1,0 +1,15 @@
+{
+ "version": "0.2.0",
+ "configurations": [
+  {
+   "name": "Global Test - MSVC",
+   "type": "cppvsdbg",
+   "request": "launch",
+   "program": "${workspaceFolder}/build/test.exe",
+   "stopAtEntry": false,
+   "cwd": "${workspaceFolder}/build",
+   "environment": [],
+   "externalConsole": false,
+  }
+ ]
+}

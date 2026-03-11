@@ -1,0 +1,74 @@
+set(VCPKG_TARGET_ARCHITECTURE x64)
+set(VCPKG_CRT_LINKAGE dynamic)
+set(VCPKG_LIBRARY_LINKAGE static)
+
+set(VCPKG_ENV_PASSTHROUGH_UNTRACKED "LLVMInstallDir;LLVMToolsVersion")
+set(VCPKG_LOAD_VCVARS_ENV ON)
+
+if(NOT DEFINED VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
+    if(PORT MATCHES "^(boost|hwloc|libpq|icu|harfbuzz|qt[a-z]+|jkqtplotter)$")
+        message(STATUS "Note: ${PORT} requested. Using default MSVC toolchain.")
+    else()
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_FILE}")
+        
+        if(PORT MATCHES "^(benchmark|gtest|pkgconf)$")
+            set(ENV{_VCPKG_LLVM_ENABLE_LTO} "OFF")
+        else()
+            set(ENV{_VCPKG_LLVM_ENABLE_LTO} "ON")
+        endif()
+    endif()
+else()
+    if(DEFINED ENV{LLVMInstallDir})
+        find_program(CLANG_CL_EXE NAMES "clang-cl.exe" PATHS "$ENV{LLVMInstallDir}" "$ENV{LLVMInstallDir}/bin" NO_DEFAULT_PATH)
+    else()
+        find_program(CLANG_CL_EXE NAMES "clang-cl.exe" PATHS "$ENV{PROGRAMFILES}/LLVM/bin" "$ENV{ProgramW6432}/LLVM/bin")
+    endif()
+
+    if(NOT CLANG_CL_EXE)
+        message(FATAL_ERROR "clang-cl not found! Please install LLVM or set LLVMInstallDir environment variable.")
+    endif()
+
+    get_filename_component(LLVM_BIN_DIR "${CLANG_CL_EXE}" DIRECTORY)
+    list(PREPEND CMAKE_PROGRAM_PATH "${LLVM_BIN_DIR}")
+
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
+    set(CMAKE_SYSTEM_NAME Windows)
+    set(CMAKE_SYSTEM_PROCESSOR AMD64)
+
+    set(CMAKE_C_COMPILER "${CLANG_CL_EXE}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_COMPILER "${CLANG_CL_EXE}" CACHE STRING "" FORCE)
+    set(CMAKE_AR "${LLVM_BIN_DIR}/llvm-lib.exe" CACHE STRING "" FORCE)
+    set(CMAKE_LINKER "${LLVM_BIN_DIR}/lld-link.exe" CACHE STRING "" FORCE)
+    set(CMAKE_ASM_MASM_COMPILER "ml64.exe" CACHE STRING "" FORCE)
+    set(CMAKE_RC_COMPILER "rc.exe" CACHE STRING "" FORCE)
+    set(CMAKE_MT "mt.exe" CACHE STRING "" FORCE)
+
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "Embedded")
+
+    set(FLAGS_COMMON "/nologo -Wno-unused-command-line-argument -Wno-unknown-argument")
+
+    set(FLAGS_LTO_COMMON "/clang:-flto=thin /clang:-fuse-ld=lld")
+
+    set(CMAKE_C_FLAGS "${FLAGS_COMMON} ${VCPKG_C_FLAGS}" CACHE STRING "" FORCE)
+    set(CMAKE_C_FLAGS_DEBUG "/Od /Ob0 /GS /RTC1 /FC /D_DEBUG ${VCPKG_C_FLAGS_DEBUG}" CACHE STRING "" FORCE)
+    set(CMAKE_C_FLAGS_RELEASE "/O2 /Oi /Ob2 /GS- /DNDEBUG ${FLAGS_LTO_COMMON} ${VCPKG_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+    set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Oi /Ob1 /GS- /DNDEBUG ${FLAGS_LTO_COMMON} ${VCPKG_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Oi /Ob1 /GS- /DNDEBUG ${FLAGS_LTO_COMMON} ${VCPKG_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+
+    set(CMAKE_CXX_FLAGS "/EHsc /GR ${FLAGS_COMMON} ${VCPKG_CXX_FLAGS}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS_DEBUG "/Od /Ob0 /GS /RTC1 /FC /D_DEBUG ${VCPKG_CXX_FLAGS_DEBUG}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Oi /Ob2 /GS- /DNDEBUG ${FLAGS_LTO_COMMON} ${VCPKG_CXX_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Oi /Ob1 /GS- /DNDEBUG ${FLAGS_LTO_COMMON} ${VCPKG_CXX_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Oi /Ob1 /GS- /DNDEBUG ${FLAGS_LTO_COMMON} ${VCPKG_CXX_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+
+    foreach(LINKER EXE SHARED MODULE)
+        set(CMAKE_${LINKER}_LINKER_FLAGS_INIT "${VCPKG_LINKER_FLAGS}")
+        set(CMAKE_${LINKER}_LINKER_FLAGS_DEBUG "/INCREMENTAL /DEBUG:FULL" CACHE STRING "")
+        set(CMAKE_${LINKER}_LINKER_FLAGS_RELEASE "/OPT:REF /OPT:ICF" CACHE STRING "")
+        set(CMAKE_${LINKER}_LINKER_FLAGS_MINSIZEREL "/OPT:REF /OPT:ICF" CACHE STRING "")
+        set(CMAKE_${LINKER}_LINKER_FLAGS_RELWITHDEBINFO "/OPT:REF /OPT:ICF /DEBUG:FULL" CACHE STRING "")
+    endforeach()
+    
+    set(CMAKE_RC_FLAGS "-c65001 /DWIN32 /D_WIN64 /D_WINDOWS" CACHE STRING "")
+endif()

@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "msvc",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                                "/path/xx/y/z/exported-x64-windows-llvm-static/vcpkg-export-20260221-031542/installed/x64-windows-llvm-static/include"
+            ],
+            "defines": [],
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerPath": "d:/Apps/llvm/bin/clang-cl.exe"
+        }
+    ],
+    "version": 4
+}

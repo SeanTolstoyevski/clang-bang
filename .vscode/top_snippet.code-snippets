@@ -1,0 +1,16 @@
+{
+	"top_snippet": {
+		"prefix": "tt",
+		"body": [
+			"/*",
+			"\tcopyright (©) SeanTolstoyevski and all contributors",
+			"\t\t- mailto:seantolstoyevski@protonmail.com",
+			".....",
+			"\tDate          :          ${CURRENT_DAY_NAME}, ${CURRENT_DATE} ${CURRENT_MONTH_NAME} ${CURRENT_YEAR}",
+			"*/",
+			"",
+			""
+		],
+		"description": "top_snippet"
+	}
+}
